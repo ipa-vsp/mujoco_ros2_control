@@ -63,7 +63,7 @@ public:
   {
     std::string name;
     T data;
-    int mj_sensor_index;
+    int mj_sensor_index = -1;
   };
 
   struct FTSensorData
@@ -78,7 +78,6 @@ public:
     std::string name;
     SensorData<Eigen::Quaternion<double>> orientation;
     SensorData<Eigen::Vector3d> angular_velocity;
-    SensorData<Eigen::Vector3d> linear_velocity;
     SensorData<Eigen::Vector3d> linear_acceleration;
   };
 
@@ -99,6 +98,7 @@ private:
   std::vector<JointState> joint_states_;
   std::vector<FTSensorData> ft_sensor_data_;
   std::vector<IMUSensorData> imu_sensor_data_;
+  std::vector<SensorData<double>> touch_sensor_data_;
 
   mjModel* mj_model_;
   mjData* mj_data_;

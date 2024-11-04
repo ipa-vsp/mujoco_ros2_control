@@ -66,6 +66,7 @@ int main(int argc, const char** argv) {
   }
 
   rendering->close();
+  delete(rendering);
 
   // free MuJoCo model and data
   mj_deleteData(mujoco_data);

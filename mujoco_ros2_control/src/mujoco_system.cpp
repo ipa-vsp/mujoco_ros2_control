@@ -26,17 +26,22 @@ hardware_interface::return_type MujocoSystem::read(const rclcpp::Time & time, co
     joint_state.effort = mj_data_->qfrc_applied[joint_state.mj_vel_adr];
   }
 
+  // Touch Sensor data
+  for (auto& data : touch_sensor_data_)
+  {
+    data.data = mj_data_->sensordata[data.mj_sensor_index];
+  }
+
   // IMU Sensor data
   for (auto& data : imu_sensor_data_)
   {
     std::vector<SensorData<Eigen::Vector3d>*> ptr_vec{&data.angular_velocity,
-                                                       &data.linear_velocity,
                                                        &data.linear_acceleration};
     data.orientation.data.w() = mj_data_->sensordata[data.orientation.mj_sensor_index];
     data.orientation.data.x() = mj_data_->sensordata[data.orientation.mj_sensor_index + 1];
     data.orientation.data.y() = mj_data_->sensordata[data.orientation.mj_sensor_index + 2];
     data.orientation.data.z() = mj_data_->sensordata[data.orientation.mj_sensor_index + 3];
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 2; ++i)
     {
       ptr_vec[i]->data.x() = mj_data_->sensordata[ptr_vec[i]->mj_sensor_index];
       ptr_vec[i]->data.y() = mj_data_->sensordata[ptr_vec[i]->mj_sensor_index + 1];
@@ -61,7 +66,6 @@ hardware_interface::return_type MujocoSystem::read(const rclcpp::Time & time, co
 hardware_interface::return_type MujocoSystem::write(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   // update mimic joint
-
   for (auto& joint_state : joint_states_)
   {
     if (joint_state.is_mimic)
@@ -72,6 +76,8 @@ hardware_interface::return_type MujocoSystem::write(const rclcpp::Time & time, c
     }
   }
   // Joint states
+
+  /// TODO : may cause crash when backspace event is triggered, the cmd computation method should be fixed
   for (auto& joint_state : joint_states_)
   {
     if (joint_state.is_position_control_enabled)
@@ -292,7 +298,7 @@ void MujocoSystem::register_joints(const urdf::Model& urdf_model, const hardware
 void MujocoSystem::register_sensors(const urdf::Model& urdf_model, const hardware_interface::HardwareInfo & hardware_info)
 {
   // count the number of different sensor
-  std::vector<int> ft_idx{}, imu_idx{};
+  std::vector<int> ft_idx{}, imu_idx{}, touch_idx{};
   for(size_t info_idx = 0; info_idx < hardware_info.sensors.size(); ++info_idx)
   {
     auto sensor_info = hardware_info.sensors[info_idx];
@@ -302,11 +308,29 @@ void MujocoSystem::register_sensors(const urdf::Model& urdf_model, const hardwar
       continue;
     }
     const std::string type = sensor_info.parameters["type"];
+    /// @TODO: May cause duplicate problem
     if(type == "IMU") imu_idx.push_back(int(info_idx));
     else if(type == "FTSensor") ft_idx.push_back(int(info_idx));
+    else if(type == "Touch")  touch_idx.push_back(int(info_idx));
   }
   ft_sensor_data_.resize(ft_idx.size());
   imu_sensor_data_.resize(imu_idx.size());
+  touch_sensor_data_.resize(touch_idx.size());
+
+  for(size_t sensor_idx = 0; sensor_idx < touch_idx.size(); ++sensor_idx)
+  {
+    auto sensor_info = hardware_info.sensors[touch_idx[sensor_idx]];
+    SensorData<double>& touch_data = touch_sensor_data_[sensor_idx];
+    touch_data.name = sensor_info.name;
+    int touch_id = mj_name2id(mj_model_, mjtObj::mjOBJ_SENSOR, touch_data.name.c_str());
+    if(touch_id == -1)
+    {
+      RCLCPP_ERROR_STREAM(logger_, "Failed to find sensor in mujoco model, sensor name: " << touch_data.name);
+      continue;
+    }
+    touch_data.mj_sensor_index = mj_model_->sensor_adr[touch_id];
+    state_interfaces_.emplace_back(touch_data.name, "force", &touch_data.data);
+  }
 
   for(size_t sensor_idx = 0; sensor_idx < imu_idx.size(); ++sensor_idx)
   {
@@ -315,21 +339,19 @@ void MujocoSystem::register_sensors(const urdf::Model& urdf_model, const hardwar
     imu_data.name = sensor_info.name;
     imu_data.angular_velocity.name = imu_data.name + "_Gyro";
     imu_data.orientation.name = imu_data.name + "_Framequat";
-    imu_data.linear_velocity.name = imu_data.name + "_Velocimeter";
     imu_data.linear_acceleration.name = imu_data.name + "_Accelerometer";
 
     int angular_vel_id = mj_name2id(mj_model_, mjtObj::mjOBJ_SENSOR, imu_data.angular_velocity.name.c_str());
     int orientation_id = mj_name2id(mj_model_, mjtObj::mjOBJ_SENSOR, imu_data.orientation.name.c_str());
     int linear_acc_id = mj_name2id(mj_model_, mjtObj::mjOBJ_SENSOR, imu_data.linear_acceleration.name.c_str());
-    int linear_vel_id = mj_name2id(mj_model_, mjtObj::mjOBJ_SENSOR, imu_data.linear_velocity.name.c_str());
-    if (angular_vel_id == -1 || orientation_id == -1 || linear_acc_id == -1 || linear_vel_id == -1)
+
+    if (angular_vel_id == -1 || orientation_id == -1 || linear_acc_id == -1)
     {
       RCLCPP_ERROR_STREAM(logger_, "IMU sensor lack of sub-sensor, check the MJCF for IMU sensor: " << imu_data.name);
       continue;
     }
     imu_data.angular_velocity.mj_sensor_index = mj_model_->sensor_adr[angular_vel_id];
     imu_data.orientation.mj_sensor_index = mj_model_->sensor_adr[orientation_id];
-    imu_data.linear_velocity.mj_sensor_index = mj_model_->sensor_adr[linear_vel_id];
     imu_data.linear_acceleration.mj_sensor_index = mj_model_->sensor_adr[linear_acc_id];
 
     state_interfaces_.emplace_back(imu_data.name, "orientation.w", &imu_data.orientation.data.w());
@@ -339,9 +361,6 @@ void MujocoSystem::register_sensors(const urdf::Model& urdf_model, const hardwar
     state_interfaces_.emplace_back(imu_data.name, "angular_velocity.x", &imu_data.angular_velocity.data.x());
     state_interfaces_.emplace_back(imu_data.name, "angular_velocity.y", &imu_data.angular_velocity.data.y());
     state_interfaces_.emplace_back(imu_data.name, "angular_velocity.z", &imu_data.angular_velocity.data.z());
-    state_interfaces_.emplace_back(imu_data.name, "linear_velocity.x", &imu_data.linear_velocity.data.x());
-    state_interfaces_.emplace_back(imu_data.name, "linear_velocity.y", &imu_data.linear_velocity.data.y());
-    state_interfaces_.emplace_back(imu_data.name, "linear_velocity.z", &imu_data.linear_velocity.data.z());
     state_interfaces_.emplace_back(imu_data.name, "linear_acceleration.x", &imu_data.linear_acceleration.data.x());
     state_interfaces_.emplace_back(imu_data.name, "linear_acceleration.y", &imu_data.linear_acceleration.data.y());
     state_interfaces_.emplace_back(imu_data.name, "linear_acceleration.z", &imu_data.linear_acceleration.data.z());

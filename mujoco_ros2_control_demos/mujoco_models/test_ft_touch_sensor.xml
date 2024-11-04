@@ -17,13 +17,15 @@
             </body>
         </body>
         <body name="weight" pos="0 0 10" euler="0 0 0">
-                <freejoint name="world_to_weight"/>
-                <geom type="box" size="0.25 0.25 0.1" rgba=".8 0 0 1" />
-                <inertial pos="0 0 0" mass="10" diaginertia="1.0 1.0 1.0" />
-            </body>
+            <freejoint name="world_to_weight"/>
+            <geom type="box" size="0.25 0.25 0.1" rgba=".8 0 0 1" />
+            <inertial pos="0 0 0" mass="10" diaginertia="1.0 1.0 1.0" />
+            <site name="touch_site" type="box" size="0.25 0.25 0.1" rgba="0 1 0 0"/>
+        </body>
 	</worldbody>
     <sensor>
         <force name="fts_sensor_force" site="fts_sensor_site"/>
         <torque name="fts_sensor_torque" site="fts_sensor_site"/>
+        <touch name="TouchSensor" site="touch_site"/>
     </sensor>
 </mujoco>

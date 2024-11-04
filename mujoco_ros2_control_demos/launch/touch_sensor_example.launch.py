@@ -18,23 +18,22 @@ def generate_launch_description():
 
     xacro_file = os.path.join(mujoco_ros2_control_demos_path,
                               'urdf',
-                              'test_ft_sensor.xacro.urdf')
+                              'test_touch_sensor.xacro.urdf')
 
     doc = xacro.parse(open(xacro_file))
     xacro.process_doc(doc)
     robot_description = {'robot_description': doc.toxml()}
 
-    controller_config_file = os.path.join(mujoco_ros2_control_demos_path, 'config', 'ft_broadcaster.yaml')
+    controller_config_file = os.path.join(mujoco_ros2_control_demos_path, 'config', 'touch_sensor_controller.yaml')
 
     node_mujoco_ros2_control = Node(
         package='mujoco_ros2_control',
         executable='mujoco_ros2_control',
         output='screen',
         parameters=[
-            robot_description,
             controller_config_file,
             {'mujoco_model_path':os.path.join(mujoco_ros2_control_demos_path, 'mujoco_models', 'test_ft_touch_sensor.xml')}
-        ]
+        ],
     )
 
     node_robot_state_publisher = Node(
@@ -44,20 +43,19 @@ def generate_launch_description():
         parameters=[robot_description]
     )
 
-    load_ft_broadcaster = ExecuteProcess(
+    load_joint_state_controller = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-             'force_torque_broadcaster'],
+             'joint_state_broadcaster'],
         output='screen'
     )
 
     return LaunchDescription([
+        node_robot_state_publisher,
+        node_mujoco_ros2_control,
         RegisterEventHandler(
             event_handler=OnProcessStart(
                 target_action=node_mujoco_ros2_control,
-                on_start=[load_ft_broadcaster],
+                on_start=[load_joint_state_controller],
             )
-        ),
-
-        node_mujoco_ros2_control,
-        node_robot_state_publisher
+        )
     ])
