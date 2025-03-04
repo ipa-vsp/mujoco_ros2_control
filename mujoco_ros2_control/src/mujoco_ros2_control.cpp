@@ -75,11 +75,19 @@ void MujocoRos2Control::init()
   }
 
   std::unique_ptr<hardware_interface::ResourceManager> resource_manager =
-    std::make_unique<hardware_interface::ResourceManager>();
+    std::make_unique<hardware_interface::ResourceManager>(
+        node_->get_node_clock_interface(), node_->get_node_logging_interface());
 
   try
   {
-    resource_manager->load_urdf(urdf_string, false, false);
+    if(resource_manager->load_and_initialize_components(urdf_string, 100)) // TODO: update rate
+    {
+      RCLCPP_INFO(logger_, "Successfully loaded and initialized components");
+    }
+    else
+    {
+      RCLCPP_ERROR(logger_, "Failed to load and initialize components!!!");
+    }
   }
   catch (...)
   {
@@ -88,7 +96,7 @@ void MujocoRos2Control::init()
 
   for (const auto &hardware : control_hardware_info)
   {
-    std::string robot_hw_sim_type_str_ = hardware.hardware_class_type;
+    std::string robot_hw_sim_type_str_ = hardware.hardware_plugin_name;
     std::unique_ptr<MujocoSystemInterface> mujoco_system;
     try
     {
