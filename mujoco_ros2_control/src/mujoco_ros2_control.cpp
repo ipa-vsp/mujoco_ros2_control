@@ -18,9 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "hardware_interface/component_parser.hpp"
-#include "hardware_interface/resource_manager.hpp"
-#include "hardware_interface/system_interface.hpp"
 
 #include "mujoco_ros2_control/mujoco_ros2_control.hpp"
 
@@ -29,6 +26,8 @@ namespace mujoco_ros2_control
 MujocoRos2Control::MujocoRos2Control(
   rclcpp::Node::SharedPtr &node, mjModel *mujoco_model, mjData *mujoco_data)
     : node_(node),
+      resource_manager_(std::make_unique<hardware_interface::ResourceManager>(
+      this->get_node_clock_interface(), this->get_node_logging_interface()))
       mj_model_(mujoco_model),
       mj_data_(mujoco_data),
       logger_(rclcpp::get_logger(node_->get_name() + std::string(".mujoco_ros2_control"))),
@@ -74,12 +73,23 @@ void MujocoRos2Control::init()
     return;
   }
 
+  RCLCPP_INFO(logger_, "Loading robot simulation interface");
   std::unique_ptr<hardware_interface::ResourceManager> resource_manager =
-    std::make_unique<hardware_interface::ResourceManager>();
+    std::make_unique<hardware_interface::ResourceManager>(urdf_string,
+        node_->get_node_clock_interface(), node_->get_node_logging_interface());
+  RCLCPP_INFO(logger_, "Successfully loaded robot simulation interface");
 
   try
   {
-    resource_manager->load_urdf(urdf_string, false, false);
+    // resource_manager->load_urdf(urdf_string, false, false);
+    if(resource_manager->load_and_initialize_components(urdf_string))
+    {
+      RCLCPP_INFO(logger_, "Successfully initialized robot simulation interface");
+    }
+    else
+    {
+      RCLCPP_FATAL(logger_, "Could not initialize robot simulation interface");
+    }
   }
   catch (...)
   {
@@ -88,7 +98,7 @@ void MujocoRos2Control::init()
 
   for (const auto &hardware : control_hardware_info)
   {
-    std::string robot_hw_sim_type_str_ = hardware.hardware_class_type;
+    std::string robot_hw_sim_type_str_ = hardware.hardware_plugin_name;
     std::unique_ptr<MujocoSystemInterface> mujoco_system;
     try
     {

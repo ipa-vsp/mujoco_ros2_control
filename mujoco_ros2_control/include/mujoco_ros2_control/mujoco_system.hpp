@@ -24,11 +24,14 @@
 #include <Eigen/Dense>
 #include <string>
 #include <vector>
+#include "hardware_interface/system_interface.hpp"
+#include "mujoco/mujoco.h"
+#include "rclcpp/rclcpp.hpp"
+#include "urdf/model.h"
 
 #include "control_toolbox/pid.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "joint_limits/joint_limits.hpp"
-#include "mujoco_ros2_control/mujoco_system_interface.hpp"
 
 namespace mujoco_ros2_control
 {
@@ -38,7 +41,7 @@ constexpr char PARAM_KD[]{"_kd"};
 constexpr char PARAM_I_MAX[]{"_i_max"};
 constexpr char PARAM_I_MIN[]{"_i_min"};
 
-class MujocoSystem : public MujocoSystemInterface
+class MujocoSystem : public hardware_interface::SystemInterface
 {
 public:
   MujocoSystem();
@@ -52,7 +55,7 @@ public:
 
   bool init_sim(
     rclcpp::Node::SharedPtr &node, mjModel *mujoco_model, mjData *mujoco_data,
-    const urdf::Model &urdf_model, const hardware_interface::HardwareInfo &hardware_info) override;
+    const urdf::Model &urdf_model, const hardware_interface::HardwareInfo &hardware_info);
 
   struct JointState
   {

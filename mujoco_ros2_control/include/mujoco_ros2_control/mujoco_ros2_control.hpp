@@ -32,6 +32,10 @@
 
 #include "mujoco_ros2_control/mujoco_system.hpp"
 
+#include "hardware_interface/resource_manager.hpp"
+#include "hardware_interface/component_parser.hpp"
+#include "hardware_interface/system_interface.hpp"
+
 namespace mujoco_ros2_control
 {
 class MujocoRos2Control
@@ -59,6 +63,7 @@ private:
 
   rclcpp::Time last_update_sim_time_ros_;
   rclcpp::Publisher<rosgraph_msgs::msg::Clock>::SharedPtr clock_publisher_;
+  std::unique_ptr<hardware_interface::ResourceManager> resource_manager_;
 };
 }  // namespace mujoco_ros2_control
 

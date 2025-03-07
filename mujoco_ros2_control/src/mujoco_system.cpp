@@ -474,4 +474,4 @@ control_toolbox::Pid MujocoSystem::get_pid_gains(
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  mujoco_ros2_control::MujocoSystem, mujoco_ros2_control::MujocoSystemInterface)
+  mujoco_ros2_control::MujocoSystem, hardware_interface::SystemInterface)
