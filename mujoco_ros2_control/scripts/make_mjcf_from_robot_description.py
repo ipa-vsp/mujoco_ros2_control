@@ -32,6 +32,8 @@ import trimesh  # Added trimesh
 from xml.dom import minidom
 import mujoco_ros2_control as mrc
 
+MUJOCO_STL_FACE_LIMIT = 200000
+
 
 def extract_rgba(visual):
     """
@@ -103,17 +105,37 @@ def convert_to_objs(mesh_info_dict, directory, xml_data, convert_stl_to_obj, dec
         if filename_ext.lower() == ".stl":
             if filename_no_ext in decompose_dict and not convert_stl_to_obj:
                 raise ValueError("The --convert_stl_to_obj argument must be specified to decompose .stl mesh")
-            if convert_stl_to_obj:
+            should_convert_stl_to_obj = convert_stl_to_obj
+            mesh = None
+
+            # MuJoCo rejects very large STL files. If users did not force conversion with
+            # --convert_stl_to_obj, auto-promote this mesh to OBJ conversion when needed.
+            if not should_convert_stl_to_obj:
+                try:
+                    mesh = trimesh.load(full_filepath, force="mesh")
+                    if len(mesh.faces) > MUJOCO_STL_FACE_LIMIT:
+                        print(
+                            f"auto-converting large STL to OBJ: {full_filepath} "
+                            f"({len(mesh.faces)} faces > {MUJOCO_STL_FACE_LIMIT})"
+                        )
+                        should_convert_stl_to_obj = True
+                except Exception as ex:
+                    print(f"auto-converting STL to OBJ due to STL parse issue in {full_filepath}: {ex}")
+                    should_convert_stl_to_obj = True
+
+            if should_convert_stl_to_obj:
                 # Load mesh using trimesh
-                mesh = trimesh.load(full_filepath)
+                if mesh is None:
+                    mesh = trimesh.load(full_filepath)
+
+                mtl_modifier = f"m{mtl_num}"
+                mtl_name = "mtl_" + mtl_modifier
 
                 # bring in file color from urdf
                 if "color" in mesh_item:
                     # trimesh expects 0-255 uint8 for colors
                     rgba = mesh_item["color"]
                     # make a material for the rgba values and export it
-                    mtl_modifier = f"m{mtl_num}"
-                    mtl_name = "mtl_" + mtl_modifier
                     material = trimesh.visual.material.SimpleMaterial(
                         name=mtl_name, diffuse=rgba, glossiness=1000, specular=[0.2, 0.2, 0.2]
                     )  # RGBA
