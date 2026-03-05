@@ -8,6 +8,7 @@ find_package(ros2_control_cmake REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(controller_manager REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(fmt REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(control_toolbox REQUIRED)
 find_package(hardware_interface REQUIRED)
@@ -17,6 +18,7 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(mujoco_ros2_control_msgs REQUIRED)
+find_package(mujoco_ros2_control_plugins REQUIRED)
 find_package(Threads REQUIRED)
 find_package(transmission_interface REQUIRED)
 find_package(backward_ros REQUIRED)
@@ -169,6 +171,7 @@ PUBLIC
   ${sensor_msgs_TARGETS}
   ${mujoco_ros2_control_msgs_TARGETS}
   pluginlib::pluginlib
+  fmt::fmt
   ${MUJOCO_LIB}
   control_toolbox::control_toolbox
   Eigen3::Eigen
@@ -189,6 +192,7 @@ target_include_directories(mujoco_ros2_control PUBLIC
   $<INSTALL_INTERFACE:${MUJOCO_INSTALL_INCLUDE_DIR}>
   $<INSTALL_INTERFACE:${MUJOCO_INSTALL_SIMULATE_DIR}>
   $<TARGET_PROPERTY:transmission_interface::transmission_interface,INTERFACE_INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:mujoco_ros2_control_plugins::mujoco_ros2_control_plugins,INTERFACE_INCLUDE_DIRECTORIES>
 )
 # Mark MuJoCo source as system to avoid compiler warnings
 target_include_directories(mujoco_ros2_control SYSTEM PUBLIC
