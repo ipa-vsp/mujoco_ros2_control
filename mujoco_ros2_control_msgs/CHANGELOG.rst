@@ -2,8 +2,8 @@
 Changelog for package mujoco_ros2_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2026-03-17)
+------------------
 * Use pixi-build-ros as the backend for pixi builds (`#130 <https://github.com/ros-controls/mujoco_ros2_control/issues/130>`_)
 * Update license name to SPDX standard (`#129 <https://github.com/ros-controls/mujoco_ros2_control/issues/129>`_)
 * Contributors: Erik Holum, Sai Kishor Kothakota

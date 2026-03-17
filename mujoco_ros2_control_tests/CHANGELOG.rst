@@ -2,8 +2,8 @@
 Changelog for package mujoco_ros2_control_tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2026-03-17)
+------------------
 * Fix reset simulation service for robots using PID control (`#140 <https://github.com/ros-controls/mujoco_ros2_control/issues/140>`_)
 * Use pixi-build-ros as the backend for pixi builds (`#130 <https://github.com/ros-controls/mujoco_ros2_control/issues/130>`_)
 * Improve integration test reliability and speed for CI (`#131 <https://github.com/ros-controls/mujoco_ros2_control/issues/131>`_)

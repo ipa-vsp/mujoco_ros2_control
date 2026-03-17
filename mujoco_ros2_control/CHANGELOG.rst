@@ -2,8 +2,8 @@
 Changelog for package mujoco_ros2_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2026-03-17)
+------------------
 * Update internal links for myst-parser readthedocs (`#148 <https://github.com/ros-controls/mujoco_ros2_control/issues/148>`_)
 * Fix reset simulation service for robots using PID control (`#140 <https://github.com/ros-controls/mujoco_ros2_control/issues/140>`_)
 * throw on failing init of mujoco_ros2_control_plugins (`#136 <https://github.com/ros-controls/mujoco_ros2_control/issues/136>`_)
