@@ -2,8 +2,8 @@
 Changelog for package mujoco_ros2_control_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.3 (2026-05-01)
+------------------
 * Add macro check using realtime_tools_MAJOR_VERSION (`#181 <https://github.com/ros-controls/mujoco_ros2_control/issues/181>`_)
 * Add more useful plugins for the mujoco_ros2_control (`#165 <https://github.com/ros-controls/mujoco_ros2_control/issues/165>`_)
 * Contributors: Sai Kishor Kothakota, Erik Holum

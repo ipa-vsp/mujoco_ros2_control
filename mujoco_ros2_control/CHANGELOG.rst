@@ -2,8 +2,8 @@
 Changelog for package mujoco_ros2_control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.3 (2026-05-01)
+------------------
 * Add more useful plugins for the mujoco_ros2_control (`#165 <https://github.com/ros-controls/mujoco_ros2_control/issues/165>`_)
 * Explicit scipy version for numpy >2.0 compatibility (`#177 <https://github.com/ros-controls/mujoco_ros2_control/issues/177>`_)
 * Use pkg install dir for requirements in conversion script (`#170 <https://github.com/ros-controls/mujoco_ros2_control/issues/170>`_)

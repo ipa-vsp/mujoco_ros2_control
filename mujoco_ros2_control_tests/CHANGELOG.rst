@@ -2,8 +2,8 @@
 Changelog for package mujoco_ros2_control_tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.3 (2026-05-01)
+------------------
 * Switch to forward_command_controller dependency (`#173 <https://github.com/ros-controls/mujoco_ros2_control/issues/173>`_)
 * Add epsilon to avoid floating point comparison (`#166 <https://github.com/ros-controls/mujoco_ros2_control/issues/166>`_)
 * Ensure the clock messages are flushed before time checking (`#153 <https://github.com/ros-controls/mujoco_ros2_control/issues/153>`_)
